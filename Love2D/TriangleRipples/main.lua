@@ -116,7 +116,7 @@ function init_ripple_state()
 	local b_max = 64
 	local b = math.random(b_max)
 	love.graphics.setBackgroundColor(b, b, b + (128 - b_max) + math.random(128))
-endp
+end
 
 function love.draw()
 	love.graphics.push()
