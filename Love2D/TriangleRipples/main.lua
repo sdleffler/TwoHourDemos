@@ -50,11 +50,13 @@ end
 function generate_tris(width, height)
 	math.random()
 	triangles = {}
+	local c = 0
 	for j=-height,height,math.sqrt(0.75) do
 		for i=-width,width do
-			local x, dir = i/2, ({-1, 1})[(i % 2) + 1]
+			local x, dir = i/2 + (1/2 * math.floor(c % 2)), ({-1, 1})[(i % 2) + 1]
 			table.insert(triangles, Triangle(x, 1, dir, 5, j, function(child) table.insert(triangles, child) end))
 		end
+		c = c + 1
 	end
 	table.sort(triangles, function(tri1, tri2) return tri1.width > tri2.width end)
 end
@@ -62,8 +64,12 @@ end
 function love.resize(w, h)
 	width = math.ceil(w/64) + 2
 	height = math.ceil(h/64)
-	
+
 	generate_tris(width, height)
+
+	if not ripple_state then init_ripple_state() end
+
+	ripple_state.max_time = (width * 2) * (ripple_state.ripple_width_coeff / ripple_state.radius_per_time)
 end
 
 function love.keypressed(key, isrepeat)
@@ -74,13 +80,15 @@ end
 
 function love.load()
 	math.randomseed(os.time())
-
 	diagnostics = false
+	love.window.setMode(800, 600, { resizable = true })
+	love.resize(love.window.getWidth(), love.window.getHeight())
+end
 
-	love.window.setMode(0, 0, { resizable = true })
-
+function init_ripple_state()
 	--ripple_state = { ripple_chance = 90, rippling = false, time_rippled = 0, ripple_width_coeff = 128, radius_per_time = 1, max_time = 60, min_time = -20, x_orig = 0, y_orig = 0 }
-	ripple_state = { ripple_chance = 20, rippling = false, time_rippled = 0, ripple_width_coeff = 1, radius_per_time = 2, max_time = 20, min_time = 0, x_orig = 0, y_orig = 0 }
+	ripple_state = { ripple_chance = 20, rippling = false, time_rippled = 0, ripple_width_coeff = 1, radius_per_time = 1.5, max_time = 20, min_time = 0, x_orig = 0, y_orig = 0 }
+
 	function ripple_state.ripple_func(x, y)
 		if ripple_state.rippling then
 			return math.pi * math.exp((1/ripple_state.ripple_width_coeff) * -(math.sqrt((x - ripple_state.x_orig)^2 + (y - ripple_state.y_orig)^2) - (ripple_state.time_rippled * ripple_state.radius_per_time))^2)
@@ -108,7 +116,7 @@ function love.load()
 	local b_max = 64
 	local b = math.random(b_max)
 	love.graphics.setBackgroundColor(b, b, b + (128 - b_max) + math.random(128))
-end
+endp
 
 function love.draw()
 	love.graphics.push()
