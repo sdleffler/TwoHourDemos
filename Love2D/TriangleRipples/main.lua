@@ -107,7 +107,7 @@ end
 function love.load()
 	math.randomseed(os.time())
 	diagnostics = false
-	init_ripple_state()
+	init_ripple_state(false)
 	love.window.setMode(800, 600, { resizable = true })
 	love.resize(love.window.getWidth(), love.window.getHeight())
 end
@@ -115,11 +115,35 @@ end
 -- Initializes the ripple state table, which is used to keep track of the current ripple (or whether
 -- there is no current ripple.) The ripple state table also contains the ripple function, and also
 -- has an update function and a function to reset to a newly rippling state.
-function init_ripple_state()
+function init_ripple_state(simplex)
 	--ripple_state = { ripple_chance = 90, rippling = false, time_rippled = 0, ripple_width_coeff = 128, radius_per_time = 1, max_time = 60, min_time = -20, x_orig = 0, y_orig = 0 }
-	ripple_state = { ripple_chance = 20, rippling = false, time_rippled = 0, ripple_width_coeff = 1, radius_per_time = 1.5, max_time = 20, min_time = 0, x_orig = 0, y_orig = 0 }
+	if simplex then
+		ripple_state = {
+			ripple_chance = 20,
+			rippling = false, 
+			time_rippled = 0, 
+			ripple_width_coeff = 6, 
+			radius_per_time = 1.5, 
+			max_time = 20, 
+			min_time = 0, 
+			x_orig = 0, 
+			y_orig = 0
+		}
+	else
+		ripple_state = {
+			ripple_chance = 20,
+			rippling = false, 
+			time_rippled = 0, 
+			ripple_width_coeff = 1, 
+			radius_per_time = 2, 
+			max_time = 20, 
+			min_time = 0, 
+			x_orig = 0, 
+			y_orig = 0
+		}
+	end
 
-	function ripple_state.ripple_func(x, y)
+	function ripple_state.gaussian_ripple(x, y)
 		if ripple_state.rippling then
 			return math.pi * math.exp((1/ripple_state.ripple_width_coeff) * -(math.sqrt((x - ripple_state.x_orig)^2 + (y - ripple_state.y_orig)^2) - (ripple_state.time_rippled * ripple_state.radius_per_time))^2)
 		else
@@ -127,11 +151,21 @@ function init_ripple_state()
 		end
 	end
 
+	function ripple_state.simplex_ripple(x, y)
+		local dilution = ripple_state.ripple_width_coeff
+		return math.pi * 1/4 * love.math.noise(x / dilution, y / dilution, ripple_state.time_rippled / dilution * 3)
+	end
+
+	if simplex then
+		ripple_state.ripple_func = ripple_state.simplex_ripple
+	else
+		ripple_state.ripple_func = ripple_state.gaussian_ripple
+	end
+
 	function ripple_state.update(dt)
-		if ripple_state.rippling and ripple_state.time_rippled < ripple_state.max_time then
-			ripple_state.time_rippled = ripple_state.time_rippled + dt * ripple_state.radius_per_time
-		else
-			ripple_state.time_rippled = 0
+		ripple_state.time_rippled = ripple_state.time_rippled + dt * ripple_state.radius_per_time
+			
+		if not ripple_state.rippling or ripple_state.time_rippled >= ripple_state.max_time then
 			ripple_state.rippling = false
 		end
 	end
