@@ -3,6 +3,8 @@ for i = 1, 10 do math.random() end
 
 local graphics = love.graphics
 
+local function start()
+
 local iterations = 8
 
 local levels = {}
@@ -149,3 +151,11 @@ function love.update(dt)
 		levels[i].angle = levels[i].angle + dt * levels[i].rotation_rate
 	end
 end
+
+function love.keypressed(k)
+	start()
+end
+
+end
+
+start()
