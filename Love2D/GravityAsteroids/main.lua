@@ -6,6 +6,10 @@ physics.setMeter(1)
 math.randomseed(os.time())
 for i = 1, 10 do math.random() end
 
+local kludge_start
+
+local function start()
+
 local world = physics.newWorld(0, 0, false)
 
 local function random_asteroid_shape(size, vert_count)
@@ -105,6 +109,13 @@ local function new_player(params)
 		graphics.push 'all'
 			graphics.setColor(255, 255, 255)
 			graphics.polygon('line', this:getWorldPoints(shape:getPoints()))
+			if keydown(key_bindings.thrust_forward) then
+				graphics.polygon('fill', this:getWorldPoints(
+					-2, 0,
+					-1, 0.5,
+					-1, -0.5
+				))
+			end
 		graphics.pop()
 	end
 	
@@ -140,6 +151,10 @@ local function new_player(params)
 			apply_thrust(0, -1)
 		elseif keydown(key_bindings.thrust_right) then
 			apply_thrust(0, 1)
+		end
+		
+		if this:getX()*this:getX() + this:getY()*this:getY() > 3000 then
+			kludge_start()
 		end
 	end
 	
@@ -227,3 +242,30 @@ function love.update(dt)
 	body_event('update', dt)
 	world:update(dt)
 end
+
+function love.keypressed(k)
+	if k == 'r' then
+		kludge_start()
+	end
+end
+
+end
+
+local font = graphics.newFont(50)
+graphics.setFont(font)
+
+function kludge_start()
+	love.update = nil
+	
+	function love.draw()
+		graphics.printf("PRESS ANY KEY TO START\n\nUSE WASD TO FLY\nR TO RESET", 0, 0, graphics.getWidth(), 'center')
+	end
+	
+	love.update = nil
+	
+	function love.keypressed(k)
+		while not pcall(start) do end
+	end
+end
+
+kludge_start()
