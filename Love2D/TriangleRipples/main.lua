@@ -109,7 +109,7 @@ function love.load()
 	diagnostics = false
 	init_ripple_state(false)
 	love.window.setMode(800, 600, { resizable = true })
-	love.resize(love.window.getWidth(), love.window.getHeight())
+	love.resize(love.graphics.getWidth(), love.graphics.getHeight())
 end
 
 -- Initializes the ripple state table, which is used to keep track of the current ripple (or whether
@@ -181,7 +181,7 @@ end
 -- Love2D draw callback. Draws all of the triangles.
 function love.draw()
 	love.graphics.push()
-	love.graphics.translate(love.window.getWidth()/2, love.window.getHeight()/2)
+	love.graphics.translate(love.graphics.getWidth()/2, love.graphics.getHeight()/2)
 	love.graphics.scale(64, 64)
 
 	for i,v in ipairs(triangles) do
